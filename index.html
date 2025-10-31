@@ -3,9 +3,819 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ハロウィーン</title>
+    <title>Super Mario Web Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .game-wrapper {
+            width: 56.25vh;
+            height: 100vh;
+            max-width: 100vw;
+            aspect-ratio: 9 / 16;
+            position: relative;
+            background: linear-gradient(to bottom, #87CEEB 0%, #90EE90 100%);
+            border: 4px solid #333;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            flex: 1;
+        }
+
+        .game-controls {
+            width: 100%;
+            height: 100px;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px;
+            gap: 10px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.1s;
+            user-select: none;
+            -webkit-user-select: none;
+            background: #667eea;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+            background: #764ba2;
+        }
+
+        .jump-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 24px;
+            background: #FF6347;
+        }
+
+        .jump-btn:active {
+            background: #FF4500;
+        }
+
+        .controls-info {
+            position: absolute;
+            bottom: 120px;
+            left: 15px;
+            color: #333;
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 6px;
+            z-index: 10;
+            max-width: 130px;
+        }
+
+        .controls-info p {
+            margin: 3px 0;
+            line-height: 1.3;
+        }
+
+        .controls-info strong {
+            color: #667eea;
+            font-size: 10px;
+        }
+
+        .status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 15px;
+            border-radius: 8px;
+            z-index: 10;
+            text-align: right;
+            min-width: 100px;
+        }
+
+        .status p {
+            margin: 3px 0;
+        }
+
+        .modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            z-index: 100;
+            display: none;
+            min-width: 220px;
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+        }
+
+        .modal p {
+            font-size: 15px;
+            margin: 8px 0;
+        }
+
+        .modal button {
+            margin-top: 15px;
+            padding: 10px 25px;
+            font-size: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .modal button:hover {
+            background: #764ba2;
+        }
+
+        @media (max-width: 600px) {
+            .game-wrapper {
+                width: 100vw;
+                height: auto;
+                aspect-ratio: 9 / 16;
+            }
+
+            .control-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
+
+            .jump-btn {
+                width: 55px;
+                height: 55px;
+                font-size: 22px;
+            }
+
+            .game-controls {
+                height: 90px;
+                padding: 8px;
+                gap: 8px;
+            }
+
+            .controls-info {
+                font-size: 10px;
+                padding: 8px;
+                bottom: 110px;
+                left: 10px;
+                max-width: 120px;
+            }
+
+            .status {
+                font-size: 12px;
+                padding: 10px 12px;
+                top: 10px;
+                right: 10px;
+            }
+
+            .modal h1 {
+                font-size: 36px;
+            }
+
+            .modal p {
+                font-size: 13px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <p>ハロウィーン用にデコってみる。</p>
+    <div class="game-wrapper">
+        <div class="game-container">
+            <canvas id="gameCanvas"></canvas>
+
+            <div class="controls-info">
+                <p><strong>PC操作:</strong></p>
+                <p>← → / A D : 移動</p>
+                <p>SPACE : ジャンプ</p>
+            </div>
+
+            <div class="status">
+                <p>敵: <span id="enemyCount">0</span></p>
+                <p>スコア: <span id="score">0</span></p>
+            </div>
+
+            <div id="gameModal" class="modal">
+                <h1 id="modalTitle">GAME OVER</h1>
+                <p id="modalMessage"></p>
+                <button onclick="location.reload()">もう一度プレイ</button>
+            </div>
+
+            <div class="game-controls">
+                <div class="button-group">
+                    <button class="control-btn" id="leftBtn">←</button>
+                    <button class="control-btn" id="rightBtn">→</button>
+                </div>
+                <button class="control-btn jump-btn" id="jumpBtn">JUMP</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== ゲーム定数 =====
+        const GRAVITY = 0.6;
+        const JUMP_STRENGTH = -10.5; // 段に届くちょうどいい高さ
+        const MOVE_SPEED = 6;
+        const MAX_FALL_SPEED = 12;
+        const GROUND_Y_RATIO = 0.85;
+
+        // ===== Canvas設定 =====
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const wrapper = canvas.parentElement.parentElement;
+            canvas.width = wrapper.clientWidth;
+            canvas.height = wrapper.clientHeight - 100;
+        }
+        resizeCanvas();
+
+        let GROUND_Y = canvas.height * GROUND_Y_RATIO;
+
+        // ===== ゲーム状態 =====
+        let gameState = 'playing';
+        let score = 0;
+        let totalEnemies = 0; // 敵の総数を保持
+
+        // ===== プレイヤーオブジェクト =====
+        const player = {
+            x: canvas.width / 2,
+            y: GROUND_Y,
+            width: 40,
+            height: 50,
+            velocityX: 0,
+            velocityY: 0,
+            isJumping: false,
+            image: null,
+            imageLoaded: false,
+            direction: 1,
+            damageTimer: 0,
+            isDamaged: false
+        };
+
+        // ===== 画像読み込み =====
+        const playerImage = new Image();
+        playerImage.src = './ちびもし.png';
+        playerImage.onload = () => {
+            player.image = playerImage;
+            player.imageLoaded = true;
+        };
+        playerImage.onerror = () => {
+            player.imageLoaded = false;
+        };
+
+        const enemyImage = new Image();
+        enemyImage.src = './こうもり256256.gif';
+
+        const backgroundImage = new Image();
+        backgroundImage.src = './image.png';
+
+        // ===== プラットフォームデータ（3段・幅ランダム・ジグザグ配置） =====
+        const platforms = [
+            // 地面（最下部）
+            { x: 0, y: GROUND_Y + 50, width: canvas.width, height: 30 },
+            
+            // 1段目：練習用足場（ランダム幅・中央寄り）
+            { x: canvas.width * 0.15, y: canvas.height * 0.70, width: canvas.width * 0.7, height: 25 },
+            
+            // 2段目：左側寄せ（ランダム幅）
+            { x: 20, y: canvas.height * 0.50, width: canvas.width * 0.5 + 30, height: 25 },
+            
+            // 3段目：右側寄せ（敵最後の足場）
+            { x: canvas.width * 0.35, y: canvas.height * 0.30, width: canvas.width * 0.55, height: 25 }
+        ];
+
+        // ===== ゴール =====
+        const goal = {
+            x: canvas.width / 2 - 50,
+            y: canvas.height * 0.08,
+            width: 100,
+            height: 30
+        };
+
+        // ===== 敵オブジェクト =====
+        class Enemy {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.width = 35;
+                this.height = 40;
+                this.velocityX = 1.5;
+                this.minX = Math.max(0, x - 120);
+                this.maxX = Math.min(canvas.width - this.width, x + 120);
+                this.image = enemyImage;
+                this.alive = true;
+                this.crushTimer = 0;
+                this.isCrushed = false;
+            }
+
+            update() {
+                this.x += this.velocityX;
+                if (this.x <= this.minX || this.x >= this.maxX) {
+                    this.velocityX *= -1;
+                }
+            }
+
+            draw(ctx) {
+                if (this.alive) {
+                    ctx.save();
+                    ctx.translate(this.x + this.width / 2, this.y);
+                    
+                    if (this.velocityX < 0) {
+                        ctx.scale(-1, 1);
+                    }
+
+                    // 潰れるアニメーション
+                    if (this.isCrushed) {
+                        const crushRatio = 1 - (this.crushTimer / 15); // 15フレームで復帰
+                        ctx.scale(1, crushRatio * 0.3 + 0.7); // 70%～100%の高さ
+                        ctx.globalAlpha = 0.5; // 半透明にする
+                    }
+
+                    if (enemyImage.complete && enemyImage.naturalHeight !== 0) {
+                        ctx.drawImage(enemyImage, -this.width / 2, 0, this.width, this.height);
+                    } else {
+                        ctx.fillStyle = '#FF6347';
+                        ctx.fillRect(-this.width / 2, 0, this.width, this.height);
+                    }
+
+                    ctx.restore();
+                }
+            }
+        }
+
+        // ===== 敵を配置（1→2→2、合計5体） =====
+        const enemies = [];
+        const floatingTexts = [];
+        function initializeEnemies() {
+            enemies.length = 0;
+            
+            // 1段目：敵1体（練習用）
+            let platform = platforms[1];
+            enemies.push(new Enemy(platform.x + platform.width / 2 - 17.5, platform.y - 45));
+            
+            // 2段目：敵2体
+            platform = platforms[2];
+            enemies.push(new Enemy(platform.x + platform.width * 0.3, platform.y - 45));
+            enemies.push(new Enemy(platform.x + platform.width * 0.7, platform.y - 45));
+            
+            // 3段目：敵2体（ラスト）
+            platform = platforms[3];
+            enemies.push(new Enemy(platform.x + platform.width * 0.3, platform.y - 45));
+            enemies.push(new Enemy(platform.x + platform.width * 0.7, platform.y - 45));
+            
+            // 敵の総数を保存
+            totalEnemies = enemies.length;
+        }
+        initializeEnemies();
+
+        // ===== キー入力管理 =====
+        const keys = {
+            left: false,
+            right: false,
+            jump: false
+        };
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
+            if (e.key === ' ') {
+                e.preventDefault();
+                keys.jump = true;
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+            if (e.key === ' ') keys.jump = false;
+        });
+
+        // ===== モバイルコントロール =====
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        const jumpBtn = document.getElementById('jumpBtn');
+
+        leftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys.left = true;
+        });
+        leftBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys.left = false;
+        });
+        leftBtn.addEventListener('mousedown', () => keys.left = true);
+        leftBtn.addEventListener('mouseup', () => keys.left = false);
+
+        rightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys.right = true;
+        });
+        rightBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys.right = false;
+        });
+        rightBtn.addEventListener('mousedown', () => keys.right = true);
+        rightBtn.addEventListener('mouseup', () => keys.right = false);
+
+        jumpBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys.jump = true;
+        });
+        jumpBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys.jump = false;
+        });
+        jumpBtn.addEventListener('mousedown', () => keys.jump = true);
+        jumpBtn.addEventListener('mouseup', () => keys.jump = false);
+
+        // ===== Web Audio API =====
+        let audioContext = null;
+
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playJumpSound() {
+            initAudioContext();
+            try {
+                const now = audioContext.currentTime;
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } catch (e) {}
+        }
+
+        function playEnemyDefeatedSound() {
+            initAudioContext();
+            try {
+                const now = audioContext.currentTime;
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.setValueAtTime(1200, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } catch (e) {}
+        }
+
+        function playDamageSound() {
+            initAudioContext();
+            try {
+                const now = audioContext.currentTime;
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.linearRampToValueAtTime(400, now + 0.1);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } catch (e) {}
+        }
+
+        // ===== 当たり判定 =====
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        function checkPlatformCollision() {
+            for (let platform of platforms) {
+                if (checkCollision(player, platform) && player.velocityY >= 0) {
+                    player.y = platform.y - player.height;
+                    player.velocityY = 0;
+                    player.isJumping = false;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // ===== ゲームロジック =====
+        function updatePlayer() {
+            if (gameState !== 'playing') return;
+
+            if (keys.left) {
+                player.velocityX = -MOVE_SPEED;
+                player.direction = -1;
+            } else if (keys.right) {
+                player.velocityX = MOVE_SPEED;
+                player.direction = 1;
+            } else {
+                player.velocityX = 0;
+            }
+
+            if (keys.jump && !player.isJumping) {
+                player.velocityY = JUMP_STRENGTH;
+                player.isJumping = true;
+                playJumpSound();
+                keys.jump = false;
+            }
+
+            player.velocityY += GRAVITY;
+            if (player.velocityY > MAX_FALL_SPEED) {
+                player.velocityY = MAX_FALL_SPEED;
+            }
+
+            player.x += player.velocityX;
+            player.y += player.velocityY;
+
+            checkPlatformCollision();
+
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
+            if (player.y > canvas.height) {
+                gameOver('落ちちゃった！');
+            }
+
+            // ダメージタイマーの更新
+            if (player.isDamaged) {
+                player.damageTimer--;
+                if (player.damageTimer <= 0) {
+                    player.isDamaged = false;
+                }
+            }
+        }
+
+        function updateEnemies() {
+            if (gameState !== 'playing') return;
+
+            for (let enemy of enemies) {
+                if (!enemy.alive) continue;
+
+                // 潰れ中なら更新
+                if (enemy.isCrushed) {
+                    enemy.crushTimer--;
+                    if (enemy.crushTimer <= 0) {
+                        enemy.alive = false;
+                        enemy.isCrushed = false;
+                    }
+                    continue; // 潰れ中は移動しない
+                }
+
+                enemy.update();
+
+                // プレイヤーと敵の当たり判定
+                if (checkCollision(player, enemy)) {
+                    // プレイヤーが敵の上から踏んだか判定
+                    if (player.velocityY > 0 && player.y + player.height - 15 < enemy.y + enemy.height / 2) {
+                        // 敵を踏み潰した！
+                        enemy.isCrushed = true;
+                        enemy.crushTimer = 15; // 15フレーム表示
+                        
+                        // プレイヤーがバウンス
+                        player.velocityY = JUMP_STRENGTH * 0.7; // ジャンプの70%の力で跳ねる
+                        player.isJumping = true;
+                        
+                        playEnemyDefeatedSound();
+                        score += 20; // 敵1体につき20点
+                        
+                        // +20ポイント表示を追加
+                        floatingTexts.push({
+                            x: enemy.x + enemy.width / 2,
+                            y: enemy.y,
+                            text: '+20',
+                            timer: 40,
+                            maxTimer: 40
+                        });
+                        
+                        updateScore();
+
+                        const aliveEnemies = enemies.filter(e => e.alive && !e.isCrushed).length;
+                        if (aliveEnemies === 0) {
+                            // ボーナスなし（敵1体20点 × 5体 = 100点）
+                            clearGame();
+                        }
+                    } else {
+                        // 敵に接触したらダメージ（一瞬小さくなる）
+                        if (!player.isDamaged) {
+                            player.isDamaged = true;
+                            player.damageTimer = 20;
+                            playDamageSound();
+                        }
+                    }
+                }
+            }
+
+            // フローティングテキストの更新
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                floatingTexts[i].timer--;
+                floatingTexts[i].y -= 2; // 上に移動
+                if (floatingTexts[i].timer <= 0) {
+                    floatingTexts.splice(i, 1);
+                }
+            }
+        }
+
+        function checkGoalCollision() {
+            if (gameState !== 'playing') return;
+            if (checkCollision(player, goal)) {
+                clearGame();
+            }
+        }
+
+        function gameOver(message) {
+            gameState = 'gameover';
+            showModal('GAME OVER', message);
+        }
+
+        function clearGame() {
+            gameState = 'clear';
+            showModal('CLEAR!', `ゴールに到達！\nスコア：${score}`);
+        }
+
+        function showModal(title, message) {
+            const modal = document.getElementById('gameModal');
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            modal.classList.add('show');
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+            const aliveCount = enemies.filter(e => e.alive && !e.isCrushed).length;
+            document.getElementById('enemyCount').textContent = aliveCount;
+        }
+
+        function getTotalEnemyCount() {
+            return enemies.length;
+        }
+
+        // ===== 描画 =====
+        function draw() {
+            // 背景を描画
+            if (backgroundImage.complete && backgroundImage.naturalHeight !== 0) {
+                // 背景画像がある場合は画像を描画
+                ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+            } else {
+                // 背景画像がない場合はグラデーション
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, '#87CEEB');
+                gradient.addColorStop(1, '#90EE90');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            ctx.fillStyle = '#8B4513';
+            for (let platform of platforms) {
+                ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+                ctx.strokeStyle = '#654321';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
+            }
+
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(goal.x, goal.y, goal.width, goal.height);
+            ctx.fillStyle = '#FFA500';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('GOAL', goal.x + goal.width / 2, goal.y + goal.height / 2 + 5);
+
+            for (let enemy of enemies) {
+                enemy.draw(ctx);
+            }
+
+            drawPlayer();
+
+            // フローティングテキスト（+100ポイント）の描画
+            for (let text of floatingTexts) {
+                ctx.save();
+                ctx.globalAlpha = text.timer / text.maxTimer; // フェードアウト
+                ctx.fillStyle = '#FFD700';
+                ctx.font = 'bold 18px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(text.text, text.x, text.y);
+                ctx.restore();
+            }
+
+            if (gameState === 'gameover' || gameState === 'clear') {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function drawPlayer() {
+            ctx.save();
+            ctx.translate(player.x + player.width / 2, player.y);
+
+            if (player.direction === -1) {
+                ctx.scale(-1, 1);
+            }
+
+            // ダメージ状態の時は小さくなる
+            if (player.isDamaged) {
+                ctx.scale(0.6, 0.6);
+            }
+
+            if (player.imageLoaded && player.image) {
+                try {
+                    ctx.drawImage(player.image, -player.width / 2, 0, player.width, player.height);
+                } catch (e) {
+                    drawPlayerFallback();
+                }
+            } else {
+                drawPlayerFallback();
+            }
+
+            ctx.restore();
+        }
+
+        function drawPlayerFallback() {
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(-player.width / 2, 0, player.width, player.height - 15);
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(0, -10, player.width / 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // ===== ゲームループ =====
+        function gameLoop() {
+            updatePlayer();
+            updateEnemies();
+            checkGoalCollision();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ゲーム開始時に敵カウントを初期化
+        updateScore();
+        gameLoop();
+    </script>
 </body>
 </html>
